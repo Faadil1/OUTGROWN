@@ -185,7 +185,7 @@ export default function Prototype1() {
                 {/* Latency - left edge */}
                 <div style={{
                   position: 'absolute',
-                  left: '-220px',
+                  left: '-80px',
                   top: '60px',
                   width: '180px',
                   padding: '12px',
