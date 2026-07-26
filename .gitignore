@@ -39,3 +39,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# dev server logs
+dev-server.log
+
+# test artifacts
+*.png
+*.jpg
+*.gif
+
+# temporary audit/verification files
+AUDIT_REPORT.md
+REVISION_SUMMARY.md
+FINAL_VERIFICATION.md
+FINAL_INTERACTION_TEST.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo

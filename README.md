@@ -1,36 +1,73 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Unresolved Coherence — Technical Interaction Spike
 
-## Getting Started
+A reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
 
-First, run the development server:
+## Memory Hook
+
+**"The evidence outgrew the explanation."**
+
+Teams believe they understand an incident. This spike lets them test whether their explanation accounts for all the evidence.
+
+## Core Interaction
+
+**Three states:**
+
+1. **Before Commitment** — User sees hypothesis, supporting observations, and a testable prediction
+2. **Evidence Reveal** — User commits; post-rollback evidence appears progressively (3.5 seconds)
+3. **Final State** — Hypothesis status changes to SUPPORTED + INSUFFICIENT; investigation reopens
+
+**The signature moment:** User commits to a prediction, evidence appears that partially matches and partially diverges, the hypothesis loses its claim to completeness without disappearing.
+
+## Running Locally
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Opens at `http://localhost:3000` (or uses next available port).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Build & Lint
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint    # TypeScript + ESLint
+npm run build   # Production build
+npm run dev     # Development server
+```
 
-## Learn More
+## Current Status
 
-To learn more about Next.js, take a look at the following resources:
+**Technical Spike:** ✓ Complete  
+**Interaction Flow:** ✓ Verified (code-level)  
+**Visual Direction:** Not final — awaiting design review  
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Limitations
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- Single fixed scenario (database degradation incident)
+- No dark mode toggle (system preference only)
+- No multi-incident comparison
+- No backend (static only)
+- No export/sharing (spike scope)
 
-## Deploy on Vercel
+## Review Controls
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Open the "Review controls" section at the bottom of the page to:
+- See current state
+- Access deterministic state links (before | reveal | final)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Important
+
+This is a technical spike for interaction logic, not the final visual design. The epistemic logic and information architecture are locked; visual refinement is pending.
+
+## Deploy
+
+Deployed to Vercel (preview URL in progress).
+
+## Causal Integrity
+
+All 11 epistemic risks from the product design are mitigated in this spike:
+- No correlation presented as causation
+- No new cause revealed
+- No proof language
+- No blame or false relief
+- Investigation remains intentionally open
