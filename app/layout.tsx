@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+﻿import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Day 11 Technical Interaction Spike",
-  description: "A stratified evidence scene that shows how the explanation remains supported but incomplete.",
+  title: "OUTGROWN - Testing Explanatory Sufficiency",
+  description: "A reasoning instrument for recognizing when an explanation remains supported but no longer accounts for the full incident.",
 };
 
 export default function RootLayout({

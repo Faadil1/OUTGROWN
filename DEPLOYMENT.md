@@ -13,7 +13,7 @@
 ### 1. Create GitHub Repository
 
 Visit https://github.com/new and create:
-- **Repository name:** `day11-unresolved-coherence`
+- **Repository name:** `outgrown`
 - **Description:** Technical spike for hypothesis-testing reasoning instrument
 - **Visibility:** Public
 - **Initialize without README** (already have one)
@@ -24,7 +24,7 @@ Visit https://github.com/new and create:
 cd C:\Users\fboussari\day11-spike
 
 # Add remote (replace YOUR_USERNAME with your GitHub username)
-git remote add origin https://github.com/YOUR_USERNAME/day11-unresolved-coherence.git
+git remote add origin https://github.com/YOUR_USERNAME/outgrown.git
 
 # Push feature branch
 git branch -M feat/technical-spike
@@ -39,7 +39,7 @@ git push -u origin feat/technical-spike
 1. Go to https://vercel.com/new
 2. Select "Import Git Repository"
 3. Authorize GitHub
-4. Select `day11-unresolved-coherence`
+4. Select `outgrown`
 5. Framework preset: Next.js (auto-detected)
 6. Deploy
 7. Preview URL will be assigned
@@ -90,7 +90,7 @@ Files: 9 changed, 457 insertions(+), 82 deletions(-)
 
 ## Expected Vercel Deployment
 
-- URL pattern: `day11-unresolved-coherence.vercel.app`
+- URL pattern: `outgrown.vercel.app`
 - Branch: `feat/technical-spike` (preview deployment)
 - Auto-redeploys on push to branch
 - Free tier (no paid services)
@@ -100,7 +100,7 @@ Files: 9 changed, 457 insertions(+), 82 deletions(-)
 Once deployment is complete, provide:
 
 ```
-GitHub Repository URL:     https://github.com/[USERNAME]/day11-unresolved-coherence
+GitHub Repository URL:     https://github.com/[USERNAME]/outgrown
 Branch Pushed:            feat/technical-spike
 Commit Hash:              c5ecf47
 Live Preview URL:         [Vercel provides this]
@@ -130,3 +130,4 @@ Local Paths Exposed:      None
 - Wait 2-3 minutes for initial deployment
 - Check Vercel dashboard for build status
 - Verify no errors in build logs
+

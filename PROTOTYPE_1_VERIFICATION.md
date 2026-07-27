@@ -19,7 +19,7 @@
 - ✅ Local build succeeded in 5.6s with no errors
 
 ### What's Currently Live
-- ❌ `https://day11-unresolved-coherence.vercel.app/?state=leading` shows **OLD SPIKE COMPONENT**
+- ❌ `https://outgrown.vercel.app/?state=leading` shows **OLD SPIKE COMPONENT**
 - Old component displays:
   - "LEADING HYPOTHESIS" card (not stratified structure)
   - "COMPLETENESS CLAIM" section
@@ -198,3 +198,4 @@ Once deployed, full visual verification can proceed.
 **STATUS:** Ready to deploy  
 **NEXT STEP:** Push changes to trigger Vercel deployment  
 **ESTIMATED TIME TO VERIFY:** 15 minutes (5 min deployment + 10 min visual checks)
+

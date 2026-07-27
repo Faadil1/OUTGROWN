@@ -26,13 +26,13 @@
 ### Deployment URLs
 
 **Primary deployment:**
-- URL: `https://day11-unresolved-coherence.vercel.app`
+- URL: `https://outgrown.vercel.app`
 - Status: ✅ Live with Prototype1
 - Branch: `feat/technical-spike`
 - Commit: `67287760e049ba77bed75c5f9584ed7411aba68e`
 
 **Branch preview (if available):**
-- Pattern: `https://day11-unresolved-coherence-git-feat-technical-spike-faadil1.vercel.app`
+- Pattern: `https://outgrown-git-feat-technical-spike-faadil1.vercel.app`
 - Status: Should match primary
 
 ---
@@ -135,7 +135,7 @@ No errors visible in the initial screenshot (live inspection can confirm during 
 **Prototype1 successfully deployed to production.** The stratified load-bearing explanatory boundary visual direction is now live and accessible via:
 
 ```
-https://day11-unresolved-coherence.vercel.app/?state=final
+https://outgrown.vercel.app/?state=final
 ```
 
 (and other states: leading, committed, compatible, unaccounted)
@@ -147,3 +147,4 @@ https://day11-unresolved-coherence.vercel.app/?state=final
 **BRANCH:** `feat/technical-spike`  
 **DATE:** 2026-07-26  
 **CONFIDENCE:** High — Visual confirmation via screenshot shows Prototype1 rendering correctly
+

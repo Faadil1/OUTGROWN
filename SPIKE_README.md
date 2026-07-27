@@ -1,4 +1,4 @@
-# Day 11 Technical Spike: Unresolved Coherence
+# Day 11 Technical Spike: OUTGROWN
 
 ## Objective
 
@@ -202,3 +202,4 @@ The spike fails if viewers say:
 - "The system found another cause" ✗
 - "The rollback proved the hypothesis wrong" ✗
 - "I do not understand why the investigation reopened" ✗
+

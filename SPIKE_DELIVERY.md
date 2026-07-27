@@ -2,7 +2,7 @@
 
 ## Overview
 
-A complete, production-ready implementation of the signature interaction for "Unresolved Coherence" — a reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
+A complete, production-ready implementation of the signature interaction for "OUTGROWN" — a reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
 
 ---
 
@@ -465,7 +465,7 @@ The Day 11 technical spike is **COMPLETE** and **VERIFIED**.
 
 ## Conclusion
 
-This technical spike successfully implements the core interaction for "Unresolved Coherence." The implementation is:
+This technical spike successfully implements the core interaction for OUTGROWN. The implementation is:
 
 - **Technically sound** (builds, lints, types correctly)
 - **Epistemically honest** (all causal risks mitigated)
@@ -481,3 +481,4 @@ This technical spike successfully implements the core interaction for "Unresolve
 **Delivery Date:** 2026-07-26
 **Implementation:** Next.js 16, React 19, TypeScript, Framer Motion
 **Recommendation:** Proceed to browser testing and visual direction phase
+

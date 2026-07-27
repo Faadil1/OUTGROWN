@@ -513,9 +513,10 @@ Shows:
 
 ## Sign-Off
 
-This technical spike implements the core interaction for "Unresolved Coherence" — a reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
+This technical spike implements the core interaction for "OUTGROWN" — a reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
 
 **Date:** 2026-07-26
 **Build:** Next.js 16 with TypeScript, Tailwind, Framer Motion
 **Status:** COMPLETE ✓
 **Recommendation:** READY FOR VISUAL DIRECTION ✓
+

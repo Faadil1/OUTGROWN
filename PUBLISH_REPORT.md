@@ -122,14 +122,14 @@ System:
 **Action Required:** User must create GitHub repository
 
 **Repository Details:**
-- Name: `day11-unresolved-coherence`
+- Name: `outgrown`
 - Visibility: Public
 - Do NOT initialize with README
 
 **Push Command:**
 ```bash
 cd C:\Users\fboussari\day11-spike
-git remote add origin https://github.com/[USERNAME]/day11-unresolved-coherence.git
+git remote add origin https://github.com/[USERNAME]/outgrown.git
 git push -u origin feat/technical-spike
 ```
 
@@ -140,7 +140,7 @@ git push -u origin feat/technical-spike
 **Deployment Method (Recommended):**
 1. Visit https://vercel.com/new
 2. Select "Import Git Repository"
-3. Authorize GitHub and select `day11-unresolved-coherence`
+3. Authorize GitHub and select `outgrown`
 4. Framework: Next.js (auto-detected)
 5. Deploy
 
@@ -175,7 +175,7 @@ git push -u origin feat/technical-spike
 Once GitHub and Vercel deployment complete, the final report will include:
 
 ```
-✓ GitHub Repository URL:    https://github.com/[USERNAME]/day11-unresolved-coherence
+✓ GitHub Repository URL:    https://github.com/[USERNAME]/outgrown
 ✓ Branch Pushed:            feat/technical-spike
 ✓ Commit Hash:              c5ecf47
 ✓ Live Preview URL:         https://[subdomain].vercel.app
@@ -194,7 +194,7 @@ Once GitHub and Vercel deployment complete, the final report will include:
 ## What Remains
 
 **User Actions Required:**
-1. Create GitHub repository: `day11-unresolved-coherence`
+1. Create GitHub repository: `outgrown`
 2. Push feature branch to GitHub
 3. Deploy to Vercel via GitHub integration
 4. Provide live preview URL for review
@@ -208,3 +208,4 @@ Once GitHub and Vercel deployment complete, the final report will include:
 The Day 11 technical spike is fully prepared for publication. All code is validated, commit is ready, and deployment instructions are in place. The spike demonstrates the core interaction flow: hypothesis → prediction → commitment → evidence reveal → insufficiency → investigation reopens.
 
 **Next step:** Push to GitHub and deploy to Vercel to make the live preview available for visual-direction review.
+

@@ -1,6 +1,6 @@
-# Unresolved Coherence — Technical Interaction Spike
+# OUTGROWN — Technical Interaction Spike
 
-A reasoning instrument that teaches teams to test whether their incident explanations are sufficient.
+A reasoning instrument for recognizing when an explanation remains supported but no longer accounts for the full incident.
 
 ## Memory Hook
 
@@ -71,3 +71,5 @@ All 11 epistemic risks from the product design are mitigated in this spike:
 - No proof language
 - No blame or false relief
 - Investigation remains intentionally open
+
+
