@@ -112,7 +112,7 @@ summary:focus-visible,
 .scene-boundary {
   position: relative;
   width: min(100%, 82rem);
-  min-height: clamp(28rem, 38vw, 36rem);
+  min-height: clamp(34rem, 44vw, 40rem);
   margin: 0 auto;
   border: 2px solid var(--line);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.32), rgba(244, 238, 226, 0.72));
@@ -121,8 +121,8 @@ summary:focus-visible,
 }
 
 .scene-boundary--contracted {
-  width: min(100%, 66rem);
-  min-height: clamp(25rem, 35vw, 32rem);
+  width: min(100%, 58rem);
+  min-height: clamp(20rem, 26vw, 24rem);
 }
 
 .scene-strata {
@@ -133,7 +133,7 @@ summary:focus-visible,
 
 .stratum {
   position: relative;
-  padding: clamp(0.55rem, 1vw, 0.9rem) clamp(0.9rem, 1.6vw, 1.25rem);
+  padding: clamp(0.4rem, 0.8vw, 0.65rem) clamp(0.8rem, 1.2vw, 1rem);
   overflow: hidden;
 }
 
@@ -157,18 +157,14 @@ summary:focus-visible,
 .seat {
   display: inline-flex;
   align-items: center;
-  min-height: 2.3rem;
-  max-width: min(100%, 30rem);
-  padding: 0.45rem 0.85rem;
+  min-height: 2.15rem;
+  max-width: min(100%, 28rem);
+  padding: 0.35rem 0.7rem;
   border-top: 1px solid rgba(52, 43, 31, 0.16);
-  border-bottom: 1px solid rgba(52, 43, 31, 0.16);
-  background: rgba(248, 244, 235, 0.54);
+  border-bottom: 1px solid rgba(52, 43, 31, 0.12);
+  background: rgba(247, 242, 231, 0.34);
   color: var(--ink);
-}
-
-.stratum:nth-child(1) .seat,
-.stratum:nth-child(2) .seat {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.42), inset 0 -1px 0 rgba(48, 39, 27, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), inset 0 -1px 0 rgba(48, 39, 27, 0.04);
 }
 
 .scene-caption {
@@ -212,7 +208,7 @@ summary:focus-visible,
   position: absolute;
   display: grid;
   gap: 0.22rem;
-  max-width: 15rem;
+  max-width: 14rem;
   color: var(--ink);
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.25);
 }
@@ -223,10 +219,10 @@ summary:focus-visible,
   font-size: 0.95rem;
 }
 
-.obs-left { left: 0.7rem; top: 28%; }
-.obs-right-top { right: 0.7rem; top: 16%; }
-.obs-right-mid { right: 1rem; top: 46%; }
-.obs-open { right: 0.5rem; bottom: 0.75rem; max-width: 14rem; }
+.obs-left { left: 0.7rem; top: 24%; }
+.obs-right-top { right: 0.7rem; top: 14%; }
+.obs-right-mid { right: 1rem; top: 48%; }
+.obs-open { right: 0.5rem; bottom: 0.5rem; max-width: 13rem; }
 
 .obs-review {
   filter: grayscale(1);
@@ -352,7 +348,7 @@ summary:focus-visible,
   .scene-boundary,
   .scene-boundary--contracted {
     width: 100%;
-    max-width: 72rem;
+    max-width: 64rem;
   }
 
   .obs-left { left: 0.25rem; top: 30%; }
@@ -373,11 +369,11 @@ summary:focus-visible,
 
   .scene-boundary,
   .scene-boundary--contracted {
-    min-height: 24rem;
+    min-height: 20rem;
   }
 
   .scene-strata {
-    grid-template-rows: repeat(4, minmax(4.5rem, auto));
+    grid-template-rows: repeat(4, minmax(4rem, auto));
   }
 
   .stratum-content {
@@ -393,8 +389,8 @@ summary:focus-visible,
     max-width: 12rem;
   }
 
-  .obs-left { left: 0; top: 18%; }
-  .obs-right-top { right: 0; top: 10%; }
-  .obs-right-mid { right: 0; top: 40%; }
-  .obs-open { left: 50%; right: auto; bottom: -0.1rem; transform: translateX(-50%); max-width: 14rem; }
+  .obs-left { left: 0; top: 16%; }
+  .obs-right-top { right: 0; top: 8%; }
+  .obs-right-mid { right: 0; top: 42%; }
+  .obs-open { left: 50%; right: auto; bottom: 0; transform: translateX(-50%); max-width: 13rem; }
 }

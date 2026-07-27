@@ -8,7 +8,6 @@ type PrototypeState = 'leading' | 'committed' | 'compatible' | 'unaccounted' | '
 type ReviewMode = 'static' | null;
 type SceneState = 'leading' | 'committed' | 'preparing' | 'compatible' | 'unaccounted' | 'contracting' | 'final';
 type EvidenceId = 'e1' | 'e2' | 'e3' | 'e4' | 'e5' | 'e6' | 'e7' | 'e8';
-
 type EvidenceGroup = 'supporting' | 'compatible' | 'unaccounted' | 'unresolved';
 
 interface EvidenceItem {
@@ -29,6 +28,8 @@ const EVIDENCE: EvidenceItem[] = [
 ];
 
 const STATE_ORDER: PrototypeState[] = ['leading', 'committed', 'compatible', 'unaccounted', 'final'];
+const EMBEDDED_EVIDENCE_IDS: EvidenceId[] = ['e1', 'e2', 'e3', 'e4'];
+const OUTSIDE_EVIDENCE_IDS: EvidenceId[] = ['e5', 'e6', 'e7', 'e8'];
 
 const stateMeta: Record<SceneState, { status: string; assistive: string }> = {
   leading: {
@@ -86,6 +87,7 @@ export default function Prototype1() {
   const commitFocusRef = useRef<HTMLDivElement>(null);
   const finalFocusRef = useRef<HTMLButtonElement>(null);
   const timersRef = useRef<number[]>([]);
+  const devAssertionRanRef = useRef(false);
 
   const clearTimers = () => {
     timersRef.current.forEach((timer) => window.clearTimeout(timer));
@@ -99,29 +101,52 @@ export default function Prototype1() {
     if (sceneState === 'final') finalFocusRef.current?.focus();
   }, [sceneState]);
 
+  useEffect(() => {
+    if (process.env.NODE_ENV !== 'development' || devAssertionRanRef.current) return;
+
+    const embeddedIds = EMBEDDED_EVIDENCE_IDS.join(',');
+    const outsideIds = OUTSIDE_EVIDENCE_IDS.join(',');
+    const overlap = EMBEDDED_EVIDENCE_IDS.filter((id) => OUTSIDE_EVIDENCE_IDS.includes(id));
+
+    devAssertionRanRef.current = true;
+
+    if (embeddedIds !== 'e1,e2,e3,e4' || outsideIds !== 'e5,e6,e7,e8' || overlap.length > 0) {
+      console.error('Day 11 evidence source-of-truth assertion failed', {
+        embeddedIds,
+        outsideIds,
+        overlap,
+      });
+    }
+  }, []);
+
   const stateKey: PrototypeState = sceneState === 'preparing' ? 'compatible' : sceneState === 'contracting' ? 'final' : sceneState;
   const showAction = !reviewOnly && sceneState === 'leading';
   const showFinalActions = !reviewOnly && sceneState === 'final';
-  const showReplayButton = !reviewOnly && showReplay && sceneState !== 'leading' && sceneState !== 'committed' && sceneState !== 'preparing';
+  const showReplayButton = !reviewOnly && showReplay && sceneState === 'final';
   const showReview = !reviewOnly;
 
-  const visibleEvidence = useMemo(() => {
-    if (reviewOnly) return EVIDENCE;
+  const embeddedEvidence = useMemo(() => {
     switch (sceneState) {
       case 'leading':
       case 'committed':
         return EVIDENCE.filter((item) => ['e1', 'e2', 'e3'].includes(item.id));
       case 'preparing':
       case 'compatible':
-        return EVIDENCE.filter((item) => ['e1', 'e2', 'e3', 'e4'].includes(item.id));
       case 'unaccounted':
       case 'contracting':
       case 'final':
-        return EVIDENCE;
+        return EVIDENCE.filter((item) => EMBEDDED_EVIDENCE_IDS.includes(item.id));
       default:
         return EVIDENCE.filter((item) => ['e1', 'e2', 'e3'].includes(item.id));
     }
-  }, [reviewOnly, sceneState]);
+  }, [sceneState]);
+
+  const outsideEvidence = useMemo(() => {
+    if (sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final') {
+      return EVIDENCE.filter((item) => OUTSIDE_EVIDENCE_IDS.includes(item.id));
+    }
+    return [];
+  }, [sceneState]);
 
   const runTimeline = () => {
     clearTimers();
@@ -196,10 +221,10 @@ export default function Prototype1() {
         <div className="scene-canvas" aria-label="Explanatory scene">
           <div className={boundaryClass} aria-describedby="scene-caption">
             <div className="scene-strata">
-              <Stratum tone="tone-a" items={visibleEvidence.filter((item) => item.id === 'e1' || item.id === 'e2')} />
-              <Stratum tone="tone-b" items={visibleEvidence.filter((item) => item.id === 'e3' || item.id === 'e4')} />
-              <Stratum tone="tone-c" items={visibleEvidence.filter((item) => item.id === 'e5' || item.id === 'e6')} />
-              <Stratum tone="tone-d" items={visibleEvidence.filter((item) => item.id === 'e7' || item.id === 'e8')} />
+              <Stratum tone="tone-a" items={embeddedEvidence.filter((item) => item.id === 'e1')} />
+              <Stratum tone="tone-b" items={embeddedEvidence.filter((item) => item.id === 'e2')} />
+              <Stratum tone="tone-c" items={embeddedEvidence.filter((item) => item.id === 'e3')} />
+              <Stratum tone="tone-d" items={embeddedEvidence.filter((item) => item.id === 'e4')} />
             </div>
           </div>
 
@@ -208,7 +233,7 @@ export default function Prototype1() {
             text="Latency remained elevated"
             label="Latency"
             position="left"
-            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            visible={outsideEvidence.some((item) => item.id === 'e5')}
             reviewOnly={reviewOnly}
           />
           <ObservationCard
@@ -216,7 +241,7 @@ export default function Prototype1() {
             text="Memory remained elevated"
             label="Memory"
             position="right-top"
-            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            visible={outsideEvidence.some((item) => item.id === 'e6')}
             reviewOnly={reviewOnly}
           />
           <ObservationCard
@@ -224,7 +249,7 @@ export default function Prototype1() {
             text="Connection saturation persisted"
             label="Connection saturation"
             position="right-mid"
-            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            visible={outsideEvidence.some((item) => item.id === 'e7')}
             reviewOnly={reviewOnly}
           />
           <ObservationCard
@@ -232,7 +257,7 @@ export default function Prototype1() {
             text="Replication lag remained elevated"
             label="Replication lag"
             position="open"
-            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            visible={outsideEvidence.some((item) => item.id === 'e8')}
             reviewOnly={reviewOnly}
           />
 
@@ -355,5 +380,3 @@ function ObservationCard({
     </AnimatePresence>
   );
 }
-
-
