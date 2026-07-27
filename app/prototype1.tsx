@@ -1,367 +1,359 @@
 'use client';
 
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { useMemo } from 'react';
 
 type PrototypeState = 'leading' | 'committed' | 'compatible' | 'unaccounted' | 'final';
+type ReviewMode = 'static' | null;
+type SceneState = 'leading' | 'committed' | 'preparing' | 'compatible' | 'unaccounted' | 'contracting' | 'final';
+type EvidenceId = 'e1' | 'e2' | 'e3' | 'e4' | 'e5' | 'e6' | 'e7' | 'e8';
+
+type EvidenceGroup = 'supporting' | 'compatible' | 'unaccounted' | 'unresolved';
 
 interface EvidenceItem {
-  id: string;
+  id: EvidenceId;
   text: string;
-  type: 'supported' | 'unaccounted' | 'unresolved';
+  group: EvidenceGroup;
 }
 
 const EVIDENCE: EvidenceItem[] = [
-  // Initial supporting (pre-rollback) - embedded
-  { id: 'e1', text: 'Deployment introduced three new database queries', type: 'supported' },
-  { id: 'e2', text: 'Query duration increased after deployment', type: 'supported' },
-  { id: 'e3', text: 'Latency and database pressure increased during degradation', type: 'supported' },
-
-  // Post-rollback compatible - embedded after state C
-  { id: 'e4', text: 'Query duration moved toward baseline after rollback', type: 'supported' },
-
-  // Post-rollback unaccounted - adjacent to boundary
-  { id: 'e5', text: 'Latency remained elevated', type: 'unaccounted' },
-  { id: 'e6', text: 'Memory remained elevated', type: 'unaccounted' },
-  { id: 'e7', text: 'Connection saturation persisted', type: 'unaccounted' },
-
-  // Still unresolved - open field
-  { id: 'e8', text: 'Replication lag remained elevated', type: 'unresolved' },
+  { id: 'e1', text: 'Deployment introduced three new database queries', group: 'supporting' },
+  { id: 'e2', text: 'Query duration increased after deployment', group: 'supporting' },
+  { id: 'e3', text: 'Latency and database pressure increased during degradation', group: 'supporting' },
+  { id: 'e4', text: 'Query duration moved toward baseline after rollback', group: 'compatible' },
+  { id: 'e5', text: 'Latency remained elevated', group: 'unaccounted' },
+  { id: 'e6', text: 'Memory remained elevated', group: 'unaccounted' },
+  { id: 'e7', text: 'Connection saturation persisted', group: 'unaccounted' },
+  { id: 'e8', text: 'Replication lag remained elevated', group: 'unresolved' },
 ];
 
-// 12-token palette
-const COLORS = {
-  canvas: '#FFFFFF',
-  textPrimary: '#3A3A3C',
-  textSecondary: '#6A6A6E',
-  stratum1: '#F2F2F4',
-  stratum2: '#E8E8EC',
-  stratum3: '#DCDCE2',
-  stratum4: '#D0D0D6',
-  seam: '#B0B0B6',
-  boundaryClaimed: '#2A2A2C',
-  boundarySupported: '#5A5A5E',
-  shadow: 'rgba(0, 0, 0, 0.08)',
-  buttonPrimary: '#0066CC',
+const STATE_ORDER: PrototypeState[] = ['leading', 'committed', 'compatible', 'unaccounted', 'final'];
+
+const stateMeta: Record<SceneState, { status: string; assistive: string }> = {
+  leading: {
+    status: 'READY TO TEST PREDICTION',
+    assistive: 'The new queries fully explain the degradation. If the new queries are the only active explanation, removing them should begin a recovery consistent with this mechanism.',
+  },
+  committed: {
+    status: 'PREDICTION LOCKED',
+    assistive: 'Prediction committed. Post-rollback evidence is being compared.',
+  },
+  preparing: {
+    status: 'STRUCTURE PREPARING',
+    assistive: 'The explanatory structure quietly becomes ready to receive evidence.',
+  },
+  compatible: {
+    status: 'QUERY DURATION MOVED TOWARD BASELINE',
+    assistive: 'Query duration moved toward baseline and remains compatible with the explanation.',
+  },
+  unaccounted: {
+    status: 'OUTSIDE OBSERVATIONS REMAIN',
+    assistive: 'Latency, memory, and connection saturation remain outside the explanation\'s current scope.',
+  },
+  contracting: {
+    status: 'CLAIMED BOUNDARY CONTRACTING',
+    assistive: 'The claimed boundary retracts toward the supported region while outside observations retain their visual weight.',
+  },
+  final: {
+    status: 'SUPPORTED + INSUFFICIENT',
+    assistive: 'The explanation remains supported but insufficient. Replication lag remains unresolved. Investigation remains open.',
+  },
+};
+
+const copy = {
+  hypothesis: 'The new queries fully explain the degradation.',
+  claimLeading: 'EXPLAINS THE FULL INCIDENT',
+  claimFinal: 'EXPLAINS PART OF THE INCIDENT',
+  prediction:
+    'If the new queries are the only active explanation, removing them should begin a recovery consistent with this mechanism.',
+  finalMessage:
+    'This explanation remains compatible with part of the evidence, but it does not yet account for the full incident.',
 };
 
 export default function Prototype1() {
   const searchParams = useSearchParams();
-  const currentState: PrototypeState = (searchParams?.get('state') as PrototypeState) || 'leading';
+  const prefersReducedMotion = useReducedMotion();
+  const initialState = (searchParams?.get('state') as PrototypeState) || 'leading';
+  const reviewMode: ReviewMode = searchParams?.get('review') === 'static' ? 'static' : null;
+  const derivedState = STATE_ORDER.includes(initialState) ? initialState : 'leading';
+  const reviewOnly = reviewMode === 'static' && derivedState === 'final';
 
-  // Determine visibility based on state
+  const [sceneState, setSceneState] = useState<SceneState>(derivedState === 'leading' ? 'leading' : derivedState);
+  const [predictionCommitted, setPredictionCommitted] = useState(derivedState !== 'leading');
+  const [showReplay, setShowReplay] = useState(false);
+  const [announcedMessage, setAnnouncedMessage] = useState('');
+  const commitFocusRef = useRef<HTMLDivElement>(null);
+  const finalFocusRef = useRef<HTMLButtonElement>(null);
+  const timersRef = useRef<number[]>([]);
+
+  const clearTimers = () => {
+    timersRef.current.forEach((timer) => window.clearTimeout(timer));
+    timersRef.current = [];
+  };
+
+  useEffect(() => clearTimers, []);
+
+  useEffect(() => {
+    if (sceneState === 'committed') commitFocusRef.current?.focus();
+    if (sceneState === 'final') finalFocusRef.current?.focus();
+  }, [sceneState]);
+
+  const stateKey: PrototypeState = sceneState === 'preparing' ? 'compatible' : sceneState === 'contracting' ? 'final' : sceneState;
+  const showAction = !reviewOnly && sceneState === 'leading';
+  const showFinalActions = !reviewOnly && sceneState === 'final';
+  const showReplayButton = !reviewOnly && showReplay && sceneState !== 'leading' && sceneState !== 'committed' && sceneState !== 'preparing';
+  const showReview = !reviewOnly;
+
   const visibleEvidence = useMemo(() => {
-    switch (currentState) {
+    if (reviewOnly) return EVIDENCE;
+    switch (sceneState) {
       case 'leading':
-        return EVIDENCE.filter(e => e.type === 'supported' && e.id !== 'e4'); // e1-e3 only
       case 'committed':
-        return EVIDENCE.filter(e => e.type === 'supported' && e.id !== 'e4'); // e1-e3 only
+        return EVIDENCE.filter((item) => ['e1', 'e2', 'e3'].includes(item.id));
+      case 'preparing':
       case 'compatible':
-        return EVIDENCE.filter(e => e.type === 'supported'); // e1-e4
+        return EVIDENCE.filter((item) => ['e1', 'e2', 'e3', 'e4'].includes(item.id));
       case 'unaccounted':
-        return EVIDENCE.filter(e => e.type === 'supported' || e.type === 'unaccounted'); // e1-e7
+      case 'contracting':
       case 'final':
-        return EVIDENCE; // all 8
+        return EVIDENCE;
       default:
-        return EVIDENCE.filter(e => e.type === 'supported' && e.id !== 'e4');
+        return EVIDENCE.filter((item) => ['e1', 'e2', 'e3'].includes(item.id));
     }
-  }, [currentState]);
+  }, [reviewOnly, sceneState]);
 
-  // Determine boundary width (full in early states, contracted in final)
-  const boundaryWidth = currentState === 'final' ? '420px' : '520px';
-  const boundaryHeight = currentState === 'final' ? '280px' : '380px';
+  const runTimeline = () => {
+    clearTimers();
+    setShowReplay(false);
+
+    if (prefersReducedMotion) {
+      setSceneState('final');
+      setAnnouncedMessage(stateMeta.final.assistive);
+      return;
+    }
+
+    const schedule = (delay: number, fn: () => void) => {
+      const timer = window.setTimeout(fn, delay);
+      timersRef.current.push(timer);
+    };
+
+    setSceneState('committed');
+    setAnnouncedMessage(stateMeta.committed.assistive);
+    schedule(1200, () => {
+      setSceneState('preparing');
+      setAnnouncedMessage(stateMeta.preparing.assistive);
+    });
+    schedule(3200, () => {
+      setSceneState('compatible');
+      setAnnouncedMessage(stateMeta.compatible.assistive);
+    });
+    schedule(4200, () => {
+      setSceneState('unaccounted');
+      setAnnouncedMessage(stateMeta.unaccounted.assistive);
+    });
+    schedule(5600, () => {
+      setSceneState('contracting');
+      setAnnouncedMessage(stateMeta.contracting.assistive);
+    });
+    schedule(6800, () => {
+      setSceneState('final');
+      setShowReplay(true);
+      setAnnouncedMessage(stateMeta.final.assistive);
+    });
+  };
+
+  const handleCommit = () => {
+    if (predictionCommitted) return;
+    setPredictionCommitted(true);
+    runTimeline();
+  };
+
+  const handleReplay = () => {
+    clearTimers();
+    setPredictionCommitted(false);
+    setSceneState('leading');
+    setShowReplay(false);
+    setAnnouncedMessage('');
+  };
+
+  const handleReopen = () => {
+    finalFocusRef.current?.focus();
+  };
+
+  const sceneClass = reviewOnly ? 'scene-review-static' : '';
+  const boundaryClass = sceneState === 'contracting' || sceneState === 'final' ? 'scene-boundary scene-boundary--contracted' : 'scene-boundary';
 
   return (
-    <div style={{ backgroundColor: COLORS.canvas, minHeight: '100vh', padding: '60px' }}>
-      <div style={{ maxWidth: '1440px', margin: '0 auto', minHeight: '900px', position: 'relative' }}>
+    <main className={`page-shell ${sceneClass}`}>
+      <section className="page-frame">
+        <header className="hero-copy">
+          <p className="eyebrow">Technical interaction spike - visual direction not final</p>
+          <h1>{copy.hypothesis}</h1>
+          <p className="lede">The evidence outgrew the explanation.</p>
+        </header>
 
-        {/* HEADER: Hypothesis Statement */}
-        <div style={{ marginBottom: '40px' }}>
-          <h1 style={{
-            fontSize: '18px',
-            fontWeight: 500,
-            color: COLORS.textPrimary,
-            margin: 0,
-            fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
-          }}>
-            Deployment introduced queries that degraded latency without triggering expected mitigations
-          </h1>
-        </div>
-
-        {/* MAIN COMPOSITION */}
-        <div style={{ position: 'relative', display: 'flex', gap: '120px' }}>
-
-          {/* LEFT: EXPLANATORY STRUCTURE */}
-          <div style={{ position: 'relative', width: '780px', height: '460px' }}>
-
-            {/* CLAIMED BOUNDARY (outer frame) */}
-            <div style={{
-              position: 'absolute',
-              top: currentState === 'final' ? '90px' : '0',
-              left: currentState === 'final' ? '80px' : '0',
-              width: boundaryWidth,
-              height: boundaryHeight,
-              border: `4px solid ${COLORS.boundaryClaimed}`,
-              transition: 'all 300ms ease-out',
-            }} />
-
-            {/* FOUR STRATA */}
-            <div style={{
-              position: 'relative',
-              width: '100%',
-              height: '100%',
-              display: 'flex',
-              flexDirection: 'column',
-            }}>
-
-              {/* Stratum 1 - 110px */}
-              <div style={{
-                flex: '0 0 110px',
-                backgroundColor: COLORS.stratum1,
-                borderBottom: `1px solid ${COLORS.seam}`,
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '40px',
-                paddingRight: '40px',
-                overflow: 'hidden',
-              }}>
-                {visibleEvidence.find(e => e.id === 'e1') && (
-                  <EvidenceEmbed text={EVIDENCE[0].text} />
-                )}
-              </div>
-
-              {/* Stratum 2 - 140px */}
-              <div style={{
-                flex: '0 0 140px',
-                backgroundColor: COLORS.stratum2,
-                borderBottom: `1px solid ${COLORS.seam}`,
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '40px',
-                paddingRight: '40px',
-                gap: '60px',
-                overflow: 'hidden',
-              }}>
-                {visibleEvidence.find(e => e.id === 'e2') && (
-                  <EvidenceEmbed text={EVIDENCE[1].text} />
-                )}
-                {visibleEvidence.find(e => e.id === 'e4') && (
-                  <EvidenceEmbed text={EVIDENCE[3].text} />
-                )}
-              </div>
-
-              {/* Stratum 3 - 100px */}
-              <div style={{
-                flex: '0 0 100px',
-                backgroundColor: COLORS.stratum3,
-                borderBottom: `1px solid ${COLORS.seam}`,
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '40px',
-                paddingRight: '40px',
-                overflow: 'hidden',
-              }}>
-                {visibleEvidence.find(e => e.id === 'e3') && (
-                  <EvidenceEmbed text={EVIDENCE[2].text} />
-                )}
-              </div>
-
-              {/* Stratum 4 - 110px (base) */}
-              <div style={{
-                flex: '0 0 110px',
-                backgroundColor: COLORS.stratum4,
-                display: 'flex',
-                alignItems: 'center',
-                paddingLeft: '40px',
-                paddingRight: '40px',
-              }} />
+        <div className="scene-canvas" aria-label="Explanatory scene">
+          <div className={boundaryClass} aria-describedby="scene-caption">
+            <div className="scene-strata">
+              <Stratum tone="tone-a" items={visibleEvidence.filter((item) => item.id === 'e1' || item.id === 'e2')} />
+              <Stratum tone="tone-b" items={visibleEvidence.filter((item) => item.id === 'e3' || item.id === 'e4')} />
+              <Stratum tone="tone-c" items={visibleEvidence.filter((item) => item.id === 'e5' || item.id === 'e6')} />
+              <Stratum tone="tone-d" items={visibleEvidence.filter((item) => item.id === 'e7' || item.id === 'e8')} />
             </div>
-
-            {/* EXTERNAL EVIDENCE - positioned around structure */}
-
-            {/* Unaccounted evidence adjacent to structure */}
-            {currentState === 'unaccounted' || currentState === 'final' ? (
-              <>
-                {/* Latency - left edge */}
-                <div style={{
-                  position: 'absolute',
-                  left: '-80px',
-                  top: '60px',
-                  width: '180px',
-                  padding: '12px',
-                  backgroundColor: COLORS.stratum2,
-                  border: `1px solid ${COLORS.seam}`,
-                  fontSize: '12px',
-                  color: COLORS.textPrimary,
-                  fontFamily: '-apple-system, sans-serif',
-                }}>
-                  <strong>Latency</strong><br />
-                  Remained elevated
-                </div>
-
-                {/* Memory - upper right */}
-                <div style={{
-                  position: 'absolute',
-                  right: '-240px',
-                  top: '40px',
-                  width: '180px',
-                  padding: '12px',
-                  backgroundColor: COLORS.stratum2,
-                  border: `1px solid ${COLORS.seam}`,
-                  fontSize: '12px',
-                  color: COLORS.textPrimary,
-                  fontFamily: '-apple-system, sans-serif',
-                }}>
-                  <strong>Memory</strong><br />
-                  Remained elevated
-                </div>
-
-                {/* Connection saturation - bottom right */}
-                <div style={{
-                  position: 'absolute',
-                  right: '-240px',
-                  bottom: '40px',
-                  width: '180px',
-                  padding: '12px',
-                  backgroundColor: COLORS.stratum2,
-                  border: `1px solid ${COLORS.seam}`,
-                  fontSize: '12px',
-                  color: COLORS.textPrimary,
-                  fontFamily: '-apple-system, sans-serif',
-                }}>
-                  <strong>Saturation</strong><br />
-                  Persisted
-                </div>
-              </>
-            ) : null}
           </div>
 
-          {/* RIGHT: UNRESOLVED FIELD (visible in final state) */}
-          {currentState === 'final' ? (
-            <div style={{
-              flex: 1,
-              maxWidth: '400px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '20px',
-            }}>
-              <h3 style={{
-                fontSize: '12px',
-                fontWeight: 400,
-                color: COLORS.textSecondary,
-                textTransform: 'uppercase',
-                letterSpacing: '0.5px',
-                margin: '0 0 10px 0',
-              }}>
-                Observations Remaining Unresolved
-              </h3>
-              <div style={{
-                padding: '16px',
-                backgroundColor: COLORS.stratum1,
-                border: `1px solid ${COLORS.seam}`,
-                fontSize: '13px',
-                color: COLORS.textPrimary,
-                fontFamily: '-apple-system, sans-serif',
-              }}>
-                <strong>Replication lag</strong><br />
-                Remained elevated<br />
-                <span style={{ fontSize: '10px', color: COLORS.textSecondary, fontStyle: 'italic' }}>
-                  Awaiting investigation
-                </span>
-              </div>
+          <ObservationCard
+            id="e5"
+            text="Latency remained elevated"
+            label="Latency"
+            position="left"
+            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            reviewOnly={reviewOnly}
+          />
+          <ObservationCard
+            id="e6"
+            text="Memory remained elevated"
+            label="Memory"
+            position="right-top"
+            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            reviewOnly={reviewOnly}
+          />
+          <ObservationCard
+            id="e7"
+            text="Connection saturation persisted"
+            label="Connection saturation"
+            position="right-mid"
+            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            reviewOnly={reviewOnly}
+          />
+          <ObservationCard
+            id="e8"
+            text="Replication lag remained elevated"
+            label="Replication lag"
+            position="open"
+            visible={sceneState === 'unaccounted' || sceneState === 'contracting' || sceneState === 'final'}
+            reviewOnly={reviewOnly}
+          />
+
+          <div id="scene-caption" className="scene-caption">
+            <div className="claim-block">
+              {!reviewOnly && <span className="claim-label">Claimed boundary</span>}
+              <strong>{sceneState === 'leading' ? copy.claimLeading : copy.claimFinal}</strong>
             </div>
-          ) : null}
+            {!reviewOnly && <p className="status-line">{stateMeta[stateKey].status}</p>}
+          </div>
         </div>
 
-        {/* FOOTER: Status and Action */}
-        <div style={{ marginTop: '80px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <p style={{
-              fontSize: '13px',
-              fontWeight: 500,
-              color: COLORS.textSecondary,
-              margin: '0 0 8px 0',
-              fontFamily: '-apple-system, sans-serif',
-            }}>
-              {currentState === 'leading' && 'Ready to test prediction'}
-              {currentState === 'committed' && 'Prediction locked • awaiting rollback'}
-              {currentState === 'compatible' && '1 of 3 predictions confirmed'}
-              {currentState === 'unaccounted' && 'Prediction tested • 3 observations unaccounted'}
-              {currentState === 'final' && 'Investigation remains open • scope contracted'}
-            </p>
-          </div>
-          {currentState === 'final' && (
-            <button style={{
-              padding: '10px 20px',
-              backgroundColor: COLORS.buttonPrimary,
-              color: 'white',
-              border: 'none',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: 'pointer',
-              fontFamily: '-apple-system, sans-serif',
-              textTransform: 'uppercase',
-            }}>
-              Reopen the Investigation
-            </button>
+        <div className="interaction-row">
+          {showAction && (
+            <motion.button type="button" className="primary-action" onClick={handleCommit} aria-describedby="interaction-help">
+              COMMIT &amp; TEST PREDICTION
+            </motion.button>
+          )}
+          {showFinalActions && (
+            <>
+              <button type="button" className="secondary-action" onClick={handleReopen} ref={finalFocusRef}>
+                REOPEN THE INVESTIGATION
+              </button>
+              {showReplayButton && (
+                <button type="button" className="secondary-action" onClick={handleReplay}>
+                  REPLAY TEST
+                </button>
+              )}
+            </>
           )}
         </div>
-      </div>
 
-      {/* REVIEW CONTROLS (bottom) */}
-      <div style={{
-        position: 'fixed',
-        bottom: '20px',
-        left: '20px',
-        backgroundColor: COLORS.canvas,
-        border: `1px solid ${COLORS.seam}`,
-        padding: '12px 16px',
-        borderRadius: '4px',
-        fontSize: '11px',
-        fontFamily: '-apple-system, sans-serif',
-      }}>
-        <div style={{ marginBottom: '8px', color: COLORS.textSecondary }}>Review controls:</div>
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-          {['leading', 'committed', 'compatible', 'unaccounted', 'final'].map(s => (
-            <a
-              key={s}
-              href={`?state=${s}`}
-              style={{
-                padding: '4px 8px',
-                backgroundColor: currentState === s ? COLORS.buttonPrimary : COLORS.stratum3,
-                color: currentState === s ? 'white' : COLORS.textPrimary,
-                textDecoration: 'none',
-                fontSize: '10px',
-                borderRadius: '2px',
-                cursor: 'pointer',
-              }}
-            >
-              {s}
-            </a>
-          ))}
+        <p id="interaction-help" className="assistive-copy">
+          {stateMeta[stateKey].assistive}
+        </p>
+
+        <AnimatePresence>
+          {(sceneState !== 'leading' || reviewOnly) && (
+            <motion.div className="prediction-strip" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35, ease: 'easeOut' }} ref={commitFocusRef} tabIndex={-1}>
+              <div className="prediction-title">Prediction</div>
+              <p>{copy.prediction}</p>
+              {sceneState === 'committed' && <p className="prediction-state">LOCKED</p>}
+              {sceneState === 'final' && <p className="prediction-state">{copy.finalMessage}</p>}
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {showReview && (
+          <details className="review-controls" open={reviewOnly ? false : undefined}>
+            <summary>Review controls</summary>
+            <div className="review-links">
+              {STATE_ORDER.map((state) => (
+                <a key={state} href={`?state=${state}`} aria-current={derivedState === state ? 'page' : undefined}>
+                  {state}
+                </a>
+              ))}
+              <a href="?state=final&review=static">Static final review</a>
+            </div>
+          </details>
+        )}
+
+        <div className="live-region" aria-live="polite" aria-atomic="true" role="status">
+          {announcedMessage}
         </div>
-        <div style={{ marginTop: '8px', fontSize: '9px', color: COLORS.textSecondary }}>
-          Technical interaction spike — visual direction not final
-        </div>
-      </div>
-    </div>
+      </section>
+    </main>
   );
 }
 
-function EvidenceEmbed({ text }: { text: string }) {
+function Stratum({ tone, items }: { tone: 'tone-a' | 'tone-b' | 'tone-c' | 'tone-d'; items: EvidenceItem[] }) {
   return (
-    <div style={{
-      fontSize: '11px',
-      color: '#FFFFFF',
-      backgroundColor: '#3A3A3C',
-      padding: '6px 10px',
-      whiteSpace: 'nowrap',
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      borderRadius: '2px',
-      fontFamily: '-apple-system, sans-serif',
-    }}>
-      {text.substring(0, 35)}...
-    </div>
+    <section className={`stratum ${tone}`}>
+      <div className="stratum-content">
+        {items.map((item) => (
+          <EvidenceSeat key={item.id} item={item} />
+        ))}
+      </div>
+    </section>
   );
 }
+
+function EvidenceSeat({ item }: { item: EvidenceItem }) {
+  return (
+    <motion.div className="seat" layout transition={{ duration: 0.25, ease: 'easeOut' }}>
+      <span>{item.text}</span>
+    </motion.div>
+  );
+}
+
+function ObservationCard({
+  id,
+  text,
+  label,
+  position,
+  visible,
+  reviewOnly,
+}: {
+  id: EvidenceId;
+  text: string;
+  label: string;
+  position: 'left' | 'right-top' | 'right-mid' | 'open';
+  visible: boolean;
+  reviewOnly: boolean;
+}) {
+  const className = {
+    left: 'obs obs-left',
+    'right-top': 'obs obs-right-top',
+    'right-mid': 'obs obs-right-mid',
+    open: 'obs obs-open',
+  }[position];
+
+  return (
+    <AnimatePresence>
+      {visible && (
+        <motion.article key={id} className={`${className} ${reviewOnly ? 'obs-review' : ''}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.28, ease: 'easeOut' }}>
+          {!reviewOnly && <span className="obs-label">{label}</span>}
+          <p>{text}</p>
+        </motion.article>
+      )}
+    </AnimatePresence>
+  );
+}
+
+
