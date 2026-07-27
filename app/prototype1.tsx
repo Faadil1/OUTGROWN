@@ -33,31 +33,31 @@ const OUTSIDE_EVIDENCE_IDS: EvidenceId[] = ['e5', 'e6', 'e7', 'e8'];
 
 const stateMeta: Record<SceneState, { status: string; assistive: string }> = {
   leading: {
-    status: 'READY TO TEST PREDICTION',
+    status: 'EXPLAINS THE FULL INCIDENT',
     assistive: 'The new queries fully explain the degradation. If the new queries are the only active explanation, removing them should begin a recovery consistent with this mechanism.',
   },
   committed: {
-    status: 'PREDICTION LOCKED',
+    status: 'EXPLAINS THE FULL INCIDENT',
     assistive: 'Prediction committed. Post-rollback evidence is being compared.',
   },
   preparing: {
-    status: 'STRUCTURE PREPARING',
+    status: 'EXPLAINS THE FULL INCIDENT',
     assistive: 'The explanatory structure quietly becomes ready to receive evidence.',
   },
   compatible: {
-    status: 'QUERY DURATION MOVED TOWARD BASELINE',
+    status: 'EXPLAINS THE FULL INCIDENT',
     assistive: 'Query duration moved toward baseline and remains compatible with the explanation.',
   },
   unaccounted: {
-    status: 'OUTSIDE OBSERVATIONS REMAIN',
+    status: 'EXPLAINS THE FULL INCIDENT',
     assistive: 'Latency, memory, and connection saturation remain outside the explanation\'s current scope.',
   },
   contracting: {
-    status: 'CLAIMED BOUNDARY CONTRACTING',
+    status: 'EXPLAINS PART OF THE INCIDENT',
     assistive: 'The claimed boundary retracts toward the supported region while outside observations retain their visual weight.',
   },
   final: {
-    status: 'SUPPORTED + INSUFFICIENT',
+    status: 'EXPLAINS PART OF THE INCIDENT',
     assistive: 'The explanation remains supported but insufficient. Replication lag remains unresolved. Investigation remains open.',
   },
 };
@@ -103,13 +103,10 @@ export default function Prototype1() {
 
   useEffect(() => {
     if (process.env.NODE_ENV !== 'development' || devAssertionRanRef.current) return;
-
     const embeddedIds = EMBEDDED_EVIDENCE_IDS.join(',');
     const outsideIds = OUTSIDE_EVIDENCE_IDS.join(',');
     const overlap = EMBEDDED_EVIDENCE_IDS.filter((id) => OUTSIDE_EVIDENCE_IDS.includes(id));
-
     devAssertionRanRef.current = true;
-
     if (embeddedIds !== 'e1,e2,e3,e4' || outsideIds !== 'e5,e6,e7,e8' || overlap.length > 0) {
       console.error('Day 11 evidence source-of-truth assertion failed', {
         embeddedIds,
@@ -208,6 +205,7 @@ export default function Prototype1() {
 
   const sceneClass = reviewOnly ? 'scene-review-static' : '';
   const boundaryClass = sceneState === 'contracting' || sceneState === 'final' ? 'scene-boundary scene-boundary--contracted' : 'scene-boundary';
+  const claimText = sceneState === 'contracting' || sceneState === 'final' ? copy.claimFinal : copy.claimLeading;
 
   return (
     <main className={`page-shell ${sceneClass}`}>
@@ -228,43 +226,15 @@ export default function Prototype1() {
             </div>
           </div>
 
-          <ObservationCard
-            id="e5"
-            text="Latency remained elevated"
-            label="Latency"
-            position="left"
-            visible={outsideEvidence.some((item) => item.id === 'e5')}
-            reviewOnly={reviewOnly}
-          />
-          <ObservationCard
-            id="e6"
-            text="Memory remained elevated"
-            label="Memory"
-            position="right-top"
-            visible={outsideEvidence.some((item) => item.id === 'e6')}
-            reviewOnly={reviewOnly}
-          />
-          <ObservationCard
-            id="e7"
-            text="Connection saturation persisted"
-            label="Connection saturation"
-            position="right-mid"
-            visible={outsideEvidence.some((item) => item.id === 'e7')}
-            reviewOnly={reviewOnly}
-          />
-          <ObservationCard
-            id="e8"
-            text="Replication lag remained elevated"
-            label="Replication lag"
-            position="open"
-            visible={outsideEvidence.some((item) => item.id === 'e8')}
-            reviewOnly={reviewOnly}
-          />
+          <ObservationCard id="e5" text="Latency remained elevated" label="Latency" position="left" visible={outsideEvidence.some((item) => item.id === 'e5')} reviewOnly={reviewOnly} />
+          <ObservationCard id="e6" text="Memory remained elevated" label="Memory" position="right-top" visible={outsideEvidence.some((item) => item.id === 'e6')} reviewOnly={reviewOnly} />
+          <ObservationCard id="e7" text="Connection saturation persisted" label="Connection saturation" position="right-mid" visible={outsideEvidence.some((item) => item.id === 'e7')} reviewOnly={reviewOnly} />
+          <ObservationCard id="e8" text="Replication lag remained elevated" label="Replication lag" position="open" visible={outsideEvidence.some((item) => item.id === 'e8')} reviewOnly={reviewOnly} />
 
           <div id="scene-caption" className="scene-caption">
             <div className="claim-block">
               {!reviewOnly && <span className="claim-label">Claimed boundary</span>}
-              <strong>{sceneState === 'leading' ? copy.claimLeading : copy.claimFinal}</strong>
+              <strong>{claimText}</strong>
             </div>
             {!reviewOnly && <p className="status-line">{stateMeta[stateKey].status}</p>}
           </div>
