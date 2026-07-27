@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
@@ -103,9 +103,9 @@ export default function HypothesisTestSpike() {
             >
               <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">SUPPORTING OBSERVATIONS</p>
               <ul className="space-y-2">
-                <li className="text-sm text-slate-700 dark:text-slate-300">• Latency rose after deployment</li>
-                <li className="text-sm text-slate-700 dark:text-slate-300">• Database CPU increased</li>
-                <li className="text-sm text-slate-700 dark:text-slate-300">• Query duration increased</li>
+                <li className="text-sm text-slate-700 dark:text-slate-300">â€¢ Latency rose after deployment</li>
+                <li className="text-sm text-slate-700 dark:text-slate-300">â€¢ Database CPU increased</li>
+                <li className="text-sm text-slate-700 dark:text-slate-300">â€¢ Query duration increased</li>
               </ul>
             </motion.div>
           )}
@@ -144,7 +144,7 @@ export default function HypothesisTestSpike() {
                 animate={{ opacity: 1 }}
                 className="font-bold text-slate-900 dark:text-slate-100"
               >
-                {state === 'final-state' ? '◐ SUPPORTED + INSUFFICIENT' : 'LOCKED'}
+                {state === 'final-state' ? 'â— SUPPORTED + INSUFFICIENT' : 'LOCKED'}
               </motion.p>
             </motion.div>
           )}
@@ -171,7 +171,7 @@ export default function HypothesisTestSpike() {
                     transition={{ delay: 0.3 }}
                     className="text-sm text-slate-700 dark:text-slate-300 flex items-start"
                   >
-                    <span className="text-blue-600 dark:text-blue-400 font-bold mr-3 mt-0.5">✓</span>
+                    <span className="text-blue-600 dark:text-blue-400 font-bold mr-3 mt-0.5">âœ“</span>
                     Query duration moved toward baseline after rollback.
                   </motion.p>
                 </div>
@@ -266,7 +266,6 @@ export default function HypothesisTestSpike() {
 
         {/* DEVELOPMENT LABEL */}
         <div className="text-center text-xs text-slate-500 dark:text-slate-400 space-y-3 border-t border-slate-200 dark:border-slate-700 pt-6">
-          <p className="italic">Technical interaction spike — visual direction not final</p>
 
           {/* REVIEW CONTROLS */}
           <details className="inline-block cursor-pointer">
@@ -294,3 +293,5 @@ export default function HypothesisTestSpike() {
     </div>
   );
 }
+
+

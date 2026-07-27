@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -211,7 +211,7 @@ export default function Prototype1() {
     <main className={`page-shell ${sceneClass}`}>
       <section className="page-frame">
         <header className="hero-copy">
-          <p className="eyebrow">Technical interaction spike - visual direction not final</p>
+          <p className="eyebrow">OUTGROWN</p>
           <h1>{copy.hypothesis}</h1>
           <p className="lede">The evidence outgrew the explanation.</p>
         </header>
@@ -350,3 +350,4 @@ function ObservationCard({
     </AnimatePresence>
   );
 }
+
